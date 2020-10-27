@@ -1,5 +1,7 @@
 package com.sergeenko.alexey.globars.activities
 
+import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.view.Menu
@@ -7,6 +9,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +20,7 @@ import com.google.android.gms.maps.model.*
 import com.google.maps.android.ui.IconGenerator
 import com.sergeenko.alexey.globars.*
 import com.sergeenko.alexey.globars.api.GlobarsApiService
+import com.sergeenko.alexey.globars.dagger.App
 import com.sergeenko.alexey.globars.dataClasses.*
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.map_layout.*
@@ -53,8 +57,6 @@ class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
     private fun setModel() {
         model = ViewModelProvider(this).get(MapViewModel::class.java)
-        model.retrofit = retrofit
-        model.loadSession()
         model.sessionData.observe(this, { it ->
             it?.let { result ->
                 showTransport(result)
@@ -193,11 +195,15 @@ class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
     }
 }
 
-class MapViewModel : ViewModel() {
+class MapViewModel(application: Application) : AndroidViewModel(application) {
 
-    lateinit var retrofit: Retrofit
-
+    val app = (application as App).netComponent
+    val retrofit: Retrofit = app!!.retrofit()
     val sessionData = MutableLiveData<TransportObjects?>()
+
+    init {
+        loadSession()
+    }
 
     fun loadSession() = CoroutineScope(IO).launch {
         val trackingSessionsCallback = object : Callback1<TrackingSessionsResult> {
@@ -242,4 +248,3 @@ class MapViewModel : ViewModel() {
         }
     }
 }
-

@@ -88,11 +88,13 @@ class NetModule(private var mBaseUrl: String) {
 @Component(modules = [AppModule::class, NetModule::class])
 interface NetComponent {
     fun inject(mainActivity: BaseActivity?)
+
+    fun retrofit(): Retrofit
+
 }
 
 class App : Application() {
     var netComponent: NetComponent? = null
-
 
     override fun onCreate() {
         super.onCreate()
